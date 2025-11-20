@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mini Snooker Readymag</title>
+<title>Mini Snooker Readymag (Sem Sons)</title>
 <style>
 html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI, Roboto, "Helvetica Neue", Arial}
 .game-wrapper{width:100%;height:100%;position:relative;overflow:hidden;background:linear-gradient(180deg,#0b3a2f 0%, #07281f 100%)}
@@ -63,34 +63,6 @@ const RESTITUTION = 0.98;
 const BALL_RADIUS = 10;
 const POCKET_RADIUS = 26;
 
-// Áudio simples
-let audioCtx=null;
-function ensureAudio(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
-function playCollisionSound(vol=0.1){
-  try{
-    ensureAudio();
-    const o=audioCtx.createOscillator();
-    const g=audioCtx.createGain();
-    o.type='square'; o.frequency.value=180+Math.random()*200;
-    g.gain.value=vol;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime+0.04);
-  }catch(e){}
-}
-function playPocketSound(){
-  try{
-    ensureAudio();
-    const o=audioCtx.createOscillator();
-    const g=audioCtx.createGain();
-    o.type='sine'; o.frequency.value=120;
-    g.gain.value=0.18;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start();
-    o.frequency.linearRampToValueAtTime(260,audioCtx.currentTime+0.08);
-    o.stop(audioCtx.currentTime+0.12);
-  }catch(e){}
-}
-
 // Bola
 function Ball(x,y,color,mass=1){
   this.x=x; this.y=y; this.vx=0; this.vy=0; this.r=BALL_RADIUS;
@@ -142,7 +114,6 @@ function pointerDown(e){
   const dx=p.x-cue.x, dy=p.y-cue.y;
   if(dx*dx + dy*dy <= (cue.r*2.2)*(cue.r*2.2)){
     isAiming=true; aimStart={x:p.x,y:p.y}; aimPos={x:p.x,y:p.y};
-    try{ if(!audioCtx){ ensureAudio(); audioCtx.resume&&audioCtx.resume(); } }catch(e){}
   }
 }
 function pointerMove(e){ if(!isAiming) return; e.preventDefault(); aimPos=getPointer(e); }
@@ -181,8 +152,6 @@ function resolveCollision(a,b){
     const jx=j*nx, jy=j*ny;
     a.vx-=jx/a.mass; a.vy-=jy/a.mass;
     b.vx+=jx/b.mass; b.vy+=jy/b.mass;
-    const impulseMag=Math.hypot(jx,jy);
-    playCollisionSound(Math.min(0.08 + impulseMag*0.0015,0.18));
   }
 }
 function applyFriction(b){ b.vx*=FRICTION; b.vy*=FRICTION; if(Math.hypot(b.vx,b.vy)<0.01){b.vx=0;b.vy=0;} }
@@ -191,7 +160,7 @@ function checkPockets(b){
   const pockets=getPockets();
   for(const p of pockets){
     if(Math.hypot(b.x-p.x,b.y-p.y)<POCKET_RADIUS){
-      b.pocketed=true; playPocketSound();
+      b.pocketed=true;
       if(b.color!=='#ffffff') score++; updateUI();
       (function(ball){ const interval=setInterval(()=>{ball.shrink-=0.06;if(ball.shrink<=0.05) clearInterval(interval);},30); })(b);
       b.vx=0; b.vy=0; return;
@@ -261,3 +230,4 @@ rackBtn.addEventListener('click',()=>{ resetBalls(); });
 
 })();
 </script>
+
